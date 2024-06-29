@@ -6,3 +6,8 @@ livro = Blueprint("livro", __name__, url_prefix='/api/v1/')
 def get_all_livros():
     from src.services.livro.service import book_service
     return book_service.get_all_livros()
+
+@livro.post('livro')
+def insert_livro():
+    from src.services.livro.service import book_service
+    return book_service.insert_livro()

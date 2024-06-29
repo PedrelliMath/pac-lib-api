@@ -1,14 +1,14 @@
 import datetime
 import enum
-from sqlalchemy import Table, Column, Integer, String, ForeignKey, DateTime, Enum
+from sqlalchemy import Table, Column, Integer, String, ForeignKey, DateTime, Enum, Boolean
 from sqlalchemy.orm import relationship
 
 from src.extensions.database.database import db
 from src.helpers.dateformats import calcular_data_devolucao
 
 class SituacaoExemplar(enum.Enum):
-    DISPONIVEL = 'DISPONIVEL'
-    EMPRESTADO = 'EMPRESTADO'
+    DISPONIVEL = 'disponivel'
+    EMPRESTADO = 'emprestado'
 
 # Tabela associativa para relação muitos-para-muitos entre Livro e Autor
 livro_autor = Table(
@@ -28,8 +28,8 @@ emprestimo_exemplar = Table(
 class BaseEntity(db.Model):
     __abstract__=True
 
-    created_at = Column(DateTime, default=lambda: datetime.datetime.now())
-    updated_at = Column(DateTime, default=lambda: datetime.datetime.now(), onupdate=lambda: datetime.datetime.now())
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.datetime.now(), onupdate=lambda: datetime.datetime.now(), nullable=False)
 
     def to_dict(self):
         return {
@@ -72,7 +72,6 @@ class Livro(BaseEntity):
                 {
                     'id': exemplar.id,
                     'situacao': exemplar.situacao.value,
-                    'emprestimo': exemplar.emprestimo[0].to_dict() if exemplar.situacao == SituacaoExemplar.EMPRESTADO and exemplar.emprestimo else None
                 } for exemplar in self.exemplares
             ]
         })
@@ -117,7 +116,7 @@ class Editora(BaseEntity):
 class Exemplar(BaseEntity):
     __tablename__='exemplares'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=False, nullable=False)
     livro_id = Column(Integer, ForeignKey('livro.id'))
     situacao = Column(Enum(SituacaoExemplar), nullable=False, default=SituacaoExemplar.DISPONIVEL)
 
@@ -140,6 +139,7 @@ class Emprestimo(BaseEntity):
     user_id = Column(Integer, ForeignKey('usuario.id'))
     data_devolucao = Column(DateTime, default=lambda: calcular_data_devolucao())
     funcionario_id = Column(Integer, ForeignKey('funcionario.id'))
+    status = Column(Boolean, default=True)
 
     usuario = relationship('User')
     funcionario = relationship('Funcionario')
@@ -159,9 +159,19 @@ class Emprestimo(BaseEntity):
                 'nome': self.funcionario.nome,
                 'sobrenome': self.funcionario.sobrenome
             },
-            'data_devolucao': self.data_devolucao.isoformat()
+            'exemplares':[{
+                'id':exemplar.id
+            }for exemplar in self.exemplares],
+            'data_devolucao': self.data_devolucao.isoformat(),
+            'status': self.atualiza_situacao()
         })
         return emprestimo_dict
+    
+    def atualiza_situacao(self):
+        if self.status:
+            current_date = datetime.datetime.now()
+            return "Em andamento" if current_date <= self.data_devolucao else "Atrasado"
+        return "Finalizado"
 
 class Devolucao(BaseEntity):
     __tablename__='devolucao'
@@ -169,6 +179,17 @@ class Devolucao(BaseEntity):
     id = Column(Integer, primary_key=True)
     emprestimo_id = Column(Integer, ForeignKey('emprestimo.id'))
     funcionario_id = Column(Integer, ForeignKey('funcionario.id'))
+
+    emprestimo = relationship('Emprestimo')
+
+    def to_dict(self):
+        devolucao_dict = super().to_dict()
+        devolucao_dict.update({
+            'id':self.id,
+            'emprestimo_id':self.emprestimo_id,
+            'funcionario_id':self.funcionario_id
+        })
+        return devolucao_dict
 
 class User(BaseEntity):
     __tablename__='usuario'

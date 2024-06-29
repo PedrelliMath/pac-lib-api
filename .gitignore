@@ -1,3 +1,10 @@
 .env
 venv
 instance
+mysql_data
+__pycache__
+.pytest_cache
+*.json
+*.sh
+*sql
+htmlcov
