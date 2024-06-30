@@ -1,6 +1,8 @@
 import pytest
 from unittest.mock import MagicMock
 
+from src.models.models import Autor, Editora, Exemplar
+
 from src.repository.livro.repository import BookRepository
 from src.extensions.database.database import db
 
@@ -35,3 +37,21 @@ def test_livro_repository_methods_rollback(mocker, method_name, param):
 
     # Verifique se o objeto foi adicionado à sessão antes da exceção
     mock_session.add.assert_called_once_with(param)
+
+def test_autor_has_dict_attr(db_for_emprestimo):
+
+    autor = Autor.query.first()
+    autor_dict = autor.to_dict()
+    assert hasattr(autor, 'to_dict')
+
+def test_editora_has_dict_attr(db_for_emprestimo):
+
+    editora = Editora.query.first()
+    editora_dict = editora.to_dict()
+    assert hasattr(editora, 'to_dict')
+
+def test_exemplar_has_dict_attr(db_for_emprestimo):
+
+    exemplar = Exemplar.query.first()
+    exemplar_dict = exemplar.to_dict()
+    assert hasattr(exemplar, 'to_dict')

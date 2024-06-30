@@ -239,3 +239,30 @@ def test_may_not_duplicate_devolucao_and_return_409(
 
     devolucao = Devolucao.query.all()
     assert len(devolucao) == 1
+
+def test_may_create_devolucao_and_emprestimo_finalizado(
+    client, db_for_emprestimo,
+):
+    emprestimo_data = {
+        'exemplar_id': '123',
+        'funcionario_id': '1',
+        'usuario_id': '1'
+    }
+
+    devolucao_data = {
+        'emprestimo_id': '1',
+        'funcionario_id': '1'
+    }
+    
+    # Criar um empréstimo
+    response_1 = client.post('/api/v1/emprestimo', json=emprestimo_data)
+    assert response_1.status_code == 201
+
+    response = client.post('/api/v1/devolucao', json=devolucao_data)
+    devolucao = response.json
+    assert response.status_code == 201
+
+    emprestimo = Emprestimo.query.first()
+    emprestimo_dict = emprestimo.to_dict()
+
+    assert emprestimo_dict['status'] == 'Finalizado'
