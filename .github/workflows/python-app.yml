@@ -1,4 +1,4 @@
-name: Workflow for Codecov
+name: Workflow for Codecov example-python
 
 on: [push, pull_request]
 
@@ -35,11 +35,16 @@ jobs:
 
     - name: Run tests and collect coverage
       run: |
-        pytest --cov=app
+        pytest --cov=app --cov-report=xml  # Gera o relatório de cobertura em XML
+
+    - name: Check coverage.xml file
+      run: |
+        if [ -f coverage.xml ]; then echo "Coverage file exists"; else echo "Coverage file does not exist"; fi
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
         verbose: true
+        files: coverage.xml  # Especifica o arquivo de cobertura
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
