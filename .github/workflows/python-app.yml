@@ -19,10 +19,10 @@ jobs:
       with:
         fetch-depth: 0  # Garante que todo o histórico do Git é recuperado
 
-    - name: Set up Python 3.10
+    - name: Set up Python 3.11.5
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'  # Define a versão do Python a ser usada
+        python-version: '3.11.5'
 
     - name: Install dependencies
       run: |
@@ -53,8 +53,8 @@ jobs:
       with:
         verbose: true
         files: ./coverage.xml
-        exclude: |
-          ./src/config.py
-          ./src/init_db.py
+        ignore: |
+          src/config.py
+          src/init_db.py
       env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}  # Token secreto para autenticação com o Codecov
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
