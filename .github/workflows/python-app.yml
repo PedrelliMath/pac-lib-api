@@ -42,8 +42,7 @@ jobs:
 
     - name: Run tests and collect coverage
       run: |
-        # Executa os testes e gera o relatório de cobertura em XML no diretório raiz
-        pytest --cov=src --cov-report=xml  # Gera coverage.xml no diretório raiz
+        pytest --cov=src --cov-report=xml  # Executa os testes e gera o relatório de cobertura em XML no diretório raiz
 
     - name: List files
       run: |
@@ -54,5 +53,8 @@ jobs:
       with:
         verbose: true
         files: ./coverage.xml  # Especifica o arquivo de cobertura a ser enviado para o Codecov
+        options: |
+          -X ./src/config.py
+          -X ./src/pinit_db.py
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}  # Token secreto para autenticação com o Codecov
