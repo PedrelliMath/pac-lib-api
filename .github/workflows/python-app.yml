@@ -1,50 +1,58 @@
-name: Workflow for Codecov example-python
+name: Python application
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
 
 jobs:
-  run:
+  build:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 0  # Garante que todo o histórico do Git é recuperado
 
     - name: Set up Python 3.11.5
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11.5'
+        python-version: '3.11.5'  # Define a versão do Python a ser usada
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest pytest-cov
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python -m pip install --upgrade pip  # Atualiza o pip para a versão mais recente
+        pip install flake8 pytest pytest-cov  # Instala flake8, pytest e pytest-cov
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi  # Instala dependências do requirements.txt, se existir
 
     - name: Set PYTHONPATH
-      run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+      run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV  # Define PYTHONPATH para o diretório de trabalho atual
 
     - name: Lint with flake8
       run: |
-        # Stop the build if there are Python syntax errors or undefined names
+        # Verifica erros de sintaxe e nomes indefinidos
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        # Trata erros como avisos e define complexidade e comprimento de linha máximos
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Run tests and collect coverage
       run: |
-        pytest --cov=app --cov-report=xml  # Gera o relatório de cobertura em XML
+        # Executa os testes e gera o relatório de cobertura em XML no diretório raiz
+        pytest --cov=src --cov-report=xml  # Gera coverage.xml no diretório raiz
 
-    - name: Check coverage.xml file
+    - name: List files
       run: |
-        if [ -f coverage.xml ]; then echo "Coverage file exists"; else echo "Coverage file does not exist"; fi
+        ls -la  # Lista arquivos para verificar a presença de coverage.xml
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
         verbose: true
-        files: coverage.xml  # Especifica o arquivo de cobertura
+        files: ./coverage.xml  # Especifica o arquivo de cobertura a ser enviado para o Codecov
       env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}  # Token secreto para autenticação com o Codecov
