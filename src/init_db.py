@@ -1,10 +1,10 @@
-from src.extensions.database.database import db
+from sqlalchemy import text
+
 from src.app import create_app
-
 from src.extensions.database.database import db
-
 from src.models.models import Livro, Autor, Editora, Exemplar, SituacaoExemplar, User, Emprestimo, Funcionario, Cadastro
 from src.helpers.dateformats import calcular_data_devolucao
+from src.sql.triggers import incremente_exemplar, decrementa_exemplar
 
 from datetime import datetime, timedelta
 
@@ -13,6 +13,9 @@ def populate_database():
     
     with app.app_context():
         db.create_all()
+
+        db.session.execute(text(incremente_exemplar))
+        db.session.execute(text(decrementa_exemplar))
         
         funcionario1 = Funcionario(
             nome="John",
@@ -99,7 +102,7 @@ def populate_database():
             ISBN13="123-1234567890",
             categoria="Ficção",
             ano_publicacao=2020,
-            quantidade_exemplares=1,
+            quantidade_exemplares=0,
             editora=editora,
             autores=[autor1, autor2]
         )
@@ -111,7 +114,7 @@ def populate_database():
             ISBN13="123-0987654321",
             categoria="Aventura",
             ano_publicacao=2021,
-            quantidade_exemplares=1,
+            quantidade_exemplares=0,
             editora=editora,
             autores=[autor1]
         )
@@ -123,7 +126,7 @@ def populate_database():
             ISBN13="123-1122334455",
             categoria="Romance",
             ano_publicacao=2022,
-            quantidade_exemplares=1,
+            quantidade_exemplares=0,
             editora=editora,
             autores=[autor2]
         )
@@ -179,11 +182,6 @@ def populate_database():
         emprestimo3.exemplares[0].situacao = SituacaoExemplar.EMPRESTADO
         db.session.commit()
 
-        #from sqlalchemy import text
-        #from src.sql.procedures import emprestimo_status_procedure
-        #from src.sql.triggers import emprestimo_status_trigger
-        #db.session.execute(text(emprestimo_status_procedure))
-        #db.session.execute(text(emprestimo_status_trigger))
 
         # Close the session
         db.session.close()
