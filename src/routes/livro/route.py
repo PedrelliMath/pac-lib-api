@@ -11,3 +11,13 @@ def get_all_livros():
 def insert_livro():
     from src.services.livro.service import book_service
     return book_service.insert_livro()
+
+@livro.put('livro/<int:id>')
+def update_livro_by_id(id):
+    from src.services.livro.service import book_service
+    return book_service.update_livro_by_id(id)
+
+@livro.delete('livro/<int:id>')
+def delete_livro_by_id(id):
+    from src.services.livro.service import book_service
+    return book_service.delete_livro_by_id(id)

@@ -17,6 +17,9 @@ class BookRepository:
     def get_livro_by_titulo(self, livro_titulo: str):
         return Livro.query.filter_by(titulo=livro_titulo).first()
     
+    def get_livro_by_id(self, livro_id: str):
+        return Livro.query.filter_by(id=livro_id).first()
+    
     def insert_autor(self, autor: Autor):
         try:
             self.db.session.add(autor)
@@ -49,6 +52,26 @@ class BookRepository:
             self.db.session.add(livro)
             self.db.session.commit()
             return livro
+        except Exception as e:
+            self.db.session.rollback()
+            raise e
+    
+    def update_livro(self, livro: Livro, livro_data: dict):
+        try:
+            for key, value in livro_data.items():
+                if hasattr(livro, key):
+                    setattr(livro, key, value)
+            
+            self.db.session.commit()
+            return livro
+        except Exception as e:
+            self.db.session.rollback()
+            raise e
+    
+    def delete_livro(self, livro: Livro):
+        try:            
+            self.db.session.delete(livro)
+            self.db.session.commit()
         except Exception as e:
             self.db.session.rollback()
             raise e

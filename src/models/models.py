@@ -53,7 +53,7 @@ class Livro(BaseEntity):
     editora_id = Column(Integer, ForeignKey('editora.id'))
     editora = relationship("Editora", back_populates="livros")
     autores = relationship('Autor', secondary=livro_autor, back_populates='livros')
-    exemplares = relationship('Exemplar', back_populates='livro')
+    exemplares = relationship('Exemplar', back_populates='livro',  cascade='all, delete-orphan')
 
     def to_dict(self):
         livro_dict = super().to_dict()

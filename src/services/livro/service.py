@@ -2,6 +2,7 @@ from src.repository.livro.repository import BookRepository
 from src.models.models import Livro, Editora, Autor, Exemplar, SituacaoExemplar
 
 from flask import request, jsonify
+from sqlalchemy import inspect
 
 import json
 
@@ -81,6 +82,55 @@ class BookService:
             return jsonify({'error': f'Erro ao cadastrar exemplar do livro "{livro.titulo}"'}), 500
 
         return jsonify({'data': livro.to_dict()}), 201
+    
+    def update_livro_by_id(self, livro_id):
+        livro_data = request.json
+
+        livro_columns = {c.key for c in inspect(Livro).mapper.column_attrs}
+        invalid_keys = [key for key in livro_data.keys() if key not in livro_columns]
+
+        if not livro_data:
+            return jsonify({'error':'Parametros Invalidos no Payload'}), 422
+        
+        if invalid_keys:
+            return jsonify({'error':f'{str(invalid_keys)} nao sao propriedades de livro'}), 422
+        
+        try:
+            livro = self.book_repository.get_livro_by_id(livro_id)
+        except Exception as e:
+            return jsonify({'error':'Internal Server Error'}), 500
+        
+        if not livro:
+            return jsonify({'error':'Livro not found'}), 404
+        
+        try:
+            new_livro = self.book_repository.update_livro(livro, livro_data)
+        except Exception as e:
+            return jsonify({'error':'Internal Server Error'}), 500
+        
+        return jsonify({'data':new_livro.to_dict()})
+
+    def delete_livro_by_id(self, livro_id):
+
+        try:
+            livro = self.book_repository.get_livro_by_id(livro_id)
+        except Exception as e:
+            return jsonify({'error':'Internal Server Error'}), 500
+        
+        if not livro:
+            return jsonify({'error':'Livro not found'}), 404
+        
+        try:
+            self.book_repository.delete_livro(livro)
+        except Exception as e:
+            return jsonify({'error':'Internal Server error'}), 500
+        
+        deleted_livro = self.book_repository.get_livro_by_id(livro_id)
+
+        if deleted_livro:
+            return jsonify({'error':'Internal Server Error'}), 500
+        
+        return jsonify({'data':'Livro deletado com sucesso'}), 200
 
     def get_all_livros(self):
 
