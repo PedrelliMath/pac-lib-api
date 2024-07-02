@@ -12,8 +12,6 @@ class BookService:
     def insert_livro(self):
         livro_data = request.json
 
-        print(json.dumps(request.json))
-
         titulo = livro_data.get('titulo')
         autores = livro_data.get('autores')
         editora_nome = livro_data.get('editora')
@@ -21,7 +19,6 @@ class BookService:
         edicao = livro_data.get('edicao')
         ano_publicacao = livro_data.get('ano_publicacao')
         codigo_exemplar = livro_data.get('codigo_exemplar')
-        print(codigo_exemplar)
 
         if not titulo or not autores or not editora_nome or not categoria or not edicao or not ano_publicacao:
             return jsonify({'error': 'Parametros Invalidos no Payload'}), 422
