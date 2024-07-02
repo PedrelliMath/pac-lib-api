@@ -170,12 +170,48 @@ A entidade `Cadastro` representa as informações de cadastro de usuários e fun
 - **User - Cadastro:** um-para-um, um usuário só pode possuir um cadastro
 - **Funcionario - Cadastro:** um-para-um, um funcionário só pode possuir um cadastro
 
+Totalizando `13 Tabelas`
+
 ## Triggers e Procedures
+
+- Calcula a data de devolução para 15 dias apartir da data atual,
+evitando cair no final de semana:
+
+```sql
+CREATE PROCEDURE IF NOT EXISTS calcular_data_devolucao(OUT data_devolucao DATE)
+    BEGIN
+        DECLARE dia_semana INT;
+
+        SET data_devolucao = DATE_ADD(CURDATE(), INTERVAL 15 DAY);
+
+        SET dia_semana = DAYOFWEEK(data_devolucao);
+
+        IF dia_semana = 1 THEN
+            SET data_devolucao = DATE_ADD(data_devolucao, INTERVAL 1 DAY);
+        ELSEIF dia_semana = 7 THEN
+            SET data_devolucao = DATE_ADD(data_devolucao, INTERVAL 2 DAY);
+        END IF;
+    END;
+```
+
+- Chama a procedure para calcular a data de devolução ao inserir registro
+na tabela empréstimo:
+
+```sql
+CREATE TRIGGER IF NOT EXISTS before_insert_emprestimo
+    BEFORE INSERT ON emprestimo
+    FOR EACH ROW
+    BEGIN
+        DECLARE data_devolucao DATE;
+        CALL calcular_data_devolucao(data_devolucao);
+    SET NEW.data_devolucao = data_devolucao;
+    END;
+```
 
 - Incrementa quantidade de exemplares ao cadastrar exemplar:
 
 ```sql
-CREATE TRIGGER incrementar_quantidade_exemplares
+CREATE TRIGGER IF NOT EXISTS incrementar_quantidade_exemplares
     AFTER INSERT ON exemplares
     FOR EACH ROW
     BEGIN
@@ -188,7 +224,7 @@ CREATE TRIGGER incrementar_quantidade_exemplares
 - Decrementa quantidade de exemplares ao deletar exemplar:
 
 ```sql
-CREATE TRIGGER decrementar_quantidade_exemplares
+CREATE TRIGGER IF NOT EXISTS decrementar_quantidade_exemplares
     AFTER DELETE ON exemplares
     FOR EACH ROW
     BEGIN

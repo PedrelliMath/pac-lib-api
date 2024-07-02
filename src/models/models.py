@@ -137,7 +137,7 @@ class Emprestimo(BaseEntity):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('usuario.id'))
-    data_devolucao = Column(DateTime, default=lambda: calcular_data_devolucao())
+    data_devolucao = Column(DateTime, nullable=True)
     funcionario_id = Column(Integer, ForeignKey('funcionario.id'))
     status = Column(Boolean, default=True)
 

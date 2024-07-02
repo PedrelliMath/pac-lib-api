@@ -4,7 +4,8 @@ from src.app import create_app
 from src.extensions.database.database import db
 from src.models.models import Livro, Autor, Editora, Exemplar, SituacaoExemplar, User, Emprestimo, Funcionario, Cadastro
 from src.helpers.dateformats import calcular_data_devolucao
-from src.sql.triggers import incremente_exemplar, decrementa_exemplar
+from src.sql.triggers import incremente_exemplar, decrementa_exemplar, call_data_devolucao
+from src.sql.procedures import data_devolucao
 
 from datetime import datetime, timedelta
 
@@ -16,6 +17,8 @@ def populate_database():
 
         db.session.execute(text(incremente_exemplar))
         db.session.execute(text(decrementa_exemplar))
+        db.session.execute(text(data_devolucao))
+        db.session.execute(text(call_data_devolucao))
         
         funcionario1 = Funcionario(
             nome="John",
@@ -149,21 +152,18 @@ def populate_database():
         emprestimo1 = Emprestimo(
             usuario=usuario1,
             funcionario=funcionario2,
-            data_devolucao=datetime.now() - timedelta(days=1),
             exemplares=[exemplar1]
         )
 
         emprestimo2 = Emprestimo(
             usuario=usuario2,
             funcionario=funcionario1,
-            data_devolucao=calcular_data_devolucao(),
             exemplares=[exemplar2]
         )
 
         emprestimo3 = Emprestimo(
             usuario=usuario2,
             funcionario=funcionario2,
-            data_devolucao=calcular_data_devolucao(),
             exemplares=[exemplar3]
         )
 

@@ -1,14 +1,16 @@
-emprestimo_status_procedure = """
-    CREATE PROCEDURE check_situacao(IN emprestimo_id INT, OUT result BOOLEAN)
+data_devolucao = """
+    CREATE PROCEDURE IF NOT EXISTS calcular_data_devolucao(OUT data_devolucao DATE)
     BEGIN
-        DECLARE data_devolucao TIMESTAMP;
+        DECLARE dia_semana INT;
 
-        SELECT data_devolucao INTO data_devolucao FROM emprestimo WHERE id = emprestimo_id;
+        SET data_devolucao = DATE_ADD(CURDATE(), INTERVAL 15 DAY);
 
-        IF CURRENT_TIMESTAMP() <= data_devolucao THEN
-            SET result = TRUE;
-        ELSE
-            SET result = FALSE;
+        SET dia_semana = DAYOFWEEK(data_devolucao);
+
+        IF dia_semana = 1 THEN
+            SET data_devolucao = DATE_ADD(data_devolucao, INTERVAL 1 DAY);
+        ELSEIF dia_semana = 7 THEN
+            SET data_devolucao = DATE_ADD(data_devolucao, INTERVAL 2 DAY);
         END IF;
     END;
 """
